@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AtletaTrack — Análise de Desempenho</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --bg2: #111318;
+    --bg3: #181c24;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --accent: #3b82f6;
+    --accent2: #60a5fa;
+    --green: #22c55e;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --purple: #a78bfa;
+    --teal: #2dd4bf;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ===== LAYOUT ===== */
+  .shell { display: flex; height: 100vh; overflow: hidden; }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .logo-mark {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .nav-section {
+    padding: 0 12px;
+    margin-bottom: 8px;
+  }
+
+  .nav-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    padding: 0 8px;
+    margin-bottom: 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .nav-item.active { background: rgba(59,130,246,0.12); color: var(--accent2); border-color: rgba(59,130,246,0.2); font-weight: 500; }
+
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .alert-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .alert-badge:hover { background: rgba(239,68,68,0.15); }
+  .alert-count { font-size: 11px; font-weight: 600; color: var(--red); font-family: var(--mono); }
+  .alert-text { font-size: 11px; color: var(--red); }
+
+  /* ===== MAIN ===== */
+  .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+  /* ===== TOPBAR ===== */
+  .topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .topbar-left { display: flex; flex-direction: column; }
+  .topbar-title { font-size: 16px; font-weight: 600; }
+  .topbar-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+  .season-select {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .btn-import {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+
+  .btn-import:hover { background: #2563eb; }
+
+  /* ===== CONTENT ===== */
+  .content { padding: 24px; flex: 1; }
+
+  /* ===== KPI GRID ===== */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .kpi-card.blue::before { background: var(--accent); }
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-card.amber::before { background: var(--amber); }
+  .kpi-card.red::before { background: var(--red); }
+
+  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .kpi-value { font-size: 28px; font-weight: 700; font-family: var(--mono); line-height: 1; }
+  .kpi-value.blue { color: var(--accent2); }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.amber { color: var(--amber); }
+  .kpi-value.red { color: var(--red); }
+  .kpi-delta { font-size: 11px; margin-top: 6px; }
+  .kpi-delta.up { color: var(--green); }
+  .kpi-delta.down { color: var(--red); }
+  .kpi-delta.neutral { color: var(--muted); }
+
+  /* ===== TWO COLS ===== */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .three-col { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  /* ===== CARD ===== */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .card-title { font-size: 13px; font-weight: 600; }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .tag {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .tag-blue { background: rgba(59,130,246,0.15); color: var(--accent2); }
+  .tag-green { background: rgba(34,197,94,0.12); color: var(--green); }
+  .tag-amber { background: rgba(245,158,11,0.12); color: var(--amber); }
+  .tag-red { background: rgba(239,68,68,0.12); color: var(--red); }
+  .tag-purple { background: rgba(167,139,250,0.12); color: var(--purple); }
+  .tag-teal { background: rgba(45,212,191,0.12); color: var(--teal); }
+
+  /* ===== PLAYER TABLE ===== */
+  .player-table { width: 100%; border-collapse: collapse; }
+
+  .player-table th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    text-align: left;
+    padding: 0 8px 10px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .player-table td {
+    padding: 10px 8px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .player-table tr:last-child td { border-bottom: none; }
+  .player-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .player-name { font-weight: 500; }
+  .player-pos {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  .mono { font-family: var(--mono); font-size: 12px; }
+
+  .bar-cell { width: 80px; }
+
+  .mini-bar-track {
+    height: 4px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+
+  .mini-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+  }
+
+  /* ===== STATUS INDICATOR ===== */
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  .status-ok { background: var(--green); }
+  .status-warn { background: var(--amber); }
+  .status-alert { background: var(--red); animation: pulse 1.5s ease-in-out infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ===== PROFILE GRID ===== */
+  .profile-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+  .profile-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .profile-card:hover { border-color: var(--border2); background: rgba(255,255,255,0.02); }
+  .profile-card.selected { border-color: var(--accent); background: rgba(59,130,246,0.06); }
+
+  .profile-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .profile-count { font-size: 11px; color: var(--muted); }
+
+  .profile-attrs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .profile-attr {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+    color: var(--muted);
+  }
+
+  /* ===== ALERTS ===== */
+  .alert-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid;
+  }
+
+  .alert-item.high {
+    background: rgba(239,68,68,0.05);
+    border-color: rgba(239,68,68,0.2);
+  }
+
+  .alert-item.med {
+    background: rgba(245,158,11,0.05);
+    border-color: rgba(245,158,11,0.2);
+  }
+
+  .alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .alert-name { font-size: 12px; font-weight: 600; }
+  .alert-desc { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .alert-time { font-size: 10px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
+
+  /* ===== COMPARE SECTION ===== */
+  .compare-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .compare-label {
+    font-size: 11px;
+    color: var(--muted);
+    width: 100px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .compare-bars {
+    flex: 1;
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    height: 18px;
+  }
+
+  .cbar-a {
+    height: 8px;
+    border-radius: 2px 0 0 2px;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+
+  .cbar-b {
+    height: 8px;
+    border-radius: 0 2px 2px 0;
+    background: var(--teal);
+    transition: width 0.4s ease;
+  }
+
+  .compare-sep { width: 1px; height: 14px; background: var(--border2); flex-shrink: 0; }
+
+  .compare-vals {
+    display: flex;
+    gap: 16px;
+    width: 80px;
+    justify-content: flex-end;
+  }
+
+  .cv { font-size: 11px; font-family: var(--mono); }
+  .cv.a { color: var(--accent2); }
+  .cv.b { color: var(--teal); }
+
+  /* ===== CHART WRAPPER ===== */
+  .chart-wrap { position: relative; height: 200px; }
+
+  /* ===== RADAR ===== */
+  .radar-wrap { position: relative; height: 220px; }
+
+  /* ===== IMPORT MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 28px;
+    width: 440px;
+    max-width: 90vw;
+  }
+
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+
+  .drop-zone {
+    border: 2px dashed var(--border2);
+    border-radius: 12px;
+    padding: 36px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+  }
+
+  .drop-zone:hover { border-color: var(--accent); background: rgba(59,130,246,0.04); }
+  .drop-icon { font-size: 32px; margin-bottom: 8px; }
+  .drop-text { font-size: 13px; color: var(--muted); }
+  .drop-text strong { color: var(--accent2); }
+
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-cancel:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+
+  .btn-confirm {
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-confirm:hover { background: #2563eb; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    z-index: 200;
+    animation: slideIn 0.3s ease;
+  }
+
+  .toast.show { display: flex; }
+
+  @keyframes slideIn {
+    from { transform: translateY(12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  /* ===== DIVIDER ===== */
+  .section-divider {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-col, .three-col { grid-template-columns: 1fr; }
+    .profile-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 560px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .content { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">AtletaTrack</div>
+      <div class="logo-sub">Análise de desempenho</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Painel</div>
+      <div class="nav-item active" onclick="showSection('dashboard')">
+        <span class="nav-dot"></span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showSection('perfis')">
+        <span class="nav-dot"></span> Perfis de jogadores
+      </div>
+      <div class="nav-item" onclick="showSection('comparar')">
+        <span class="nav-dot"></span> Comparar atletas
+      </div>
+      <div class="nav-item" onclick="showSection('alertas')">
+        <span class="nav-dot"></span> Alertas
+      </div>
+    </div>
+
+    <div class="nav-section" style="margin-top: 8px;">
+      <div class="nav-label">Dados</div>
+      <div class="nav-item" onclick="openImport()">
+        <span class="nav-dot"></span> Importar partida
+      </div>
+      <div class="nav-item">
+        <span class="nav-dot"></span> Histórico de jogos
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="alert-badge" onclick="showSection('alertas')">
+        <span class="status-dot status-alert"></span>
+        <span class="alert-count">3</span>
+        <span class="alert-text">alertas ativos</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title" id="page-title">Dashboard — Visão geral</div>
+        <div class="topbar-sub">Temporada 2025/26 · Plantel: 28 atletas · Última partida: Rodada 22</div>
+      </div>
+      <div class="topbar-right">
+        <select class="season-select">
+          <option>Temporada 2025/26</option>
+          <option>Temporada 2024/25</option>
+        </select>
+        <button class="btn-import" onclick="openImport()">
+          ＋ Importar dados
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div id="sec-dashboard">
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi-card blue">
+            <div class="kpi-label">Distância média (km)</div>
+            <div class="kpi-value blue">10.4</div>
+            <div class="kpi-delta up">↑ 0.6 vs jogo anterior</div>
+          </div>
+          <div class="kpi-card green">
+            <div class="kpi-label">Vel. máxima (km/h)</div>
+            <div class="kpi-value green">34.2</div>
+            <div class="kpi-delta neutral">→ estável</div>
+          </div>
+          <div class="kpi-card amber">
+            <div class="kpi-label">Sprints alta intens.</div>
+            <div class="kpi-value amber">18</div>
+            <div class="kpi-delta down">↓ 3 vs média temporada</div>
+          </div>
+          <div class="kpi-card red">
+            <div class="kpi-label">Atletas em alerta</div>
+            <div class="kpi-value red">3</div>
+            <div class="kpi-delta down">↑ 2 desde rodada 20</div>
+          </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="three-col">
+          <!-- Performance chart -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Carga de trabalho — temporada</div>
+                <div class="card-sub">Média do plantel por rodada</div>
+              </div>
+              <span class="tag tag-blue">RF07</span>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="workloadChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Status atletas -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Status do plantel</div>
+                <div class="card-sub">Distribuição por condição</div>
+              </div>
+              <span class="tag tag-green">RF05</span>
+            </div>
+            <div style="height:200px;display:flex;align-items:center;justify-content:center;">
+              <canvas id="statusChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Players table -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Indicadores por atleta — Rodada 22</div>
+              <div class="card-sub">Ordenado por carga de trabalho</div>
+            </div>
+            <span class="tag tag-blue">RF07</span>
+          </div>
+          <table class="player-table">
+            <thead>
+              <tr>
+                <th>Atleta</th>
+                <th>Perfil</th>
+                <th>Dist. (km)</th>
+                <th>Sprint</th>
+                <th>Vel. máx.</th>
+                <th>Acelerações</th>
+                <th>Carga</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="player-table-body"></tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- ===== PERFIS ===== -->
+      <div id="sec-perfis" style="display:none">
+        <div class="section-divider">Perfis identificados por IA (RF03 · RF05)</div>
+
+        <div class="profile-grid" style="margin-bottom:20px">
+          <div class="profile-card selected" onclick="selectProfile(this,'explosivo')">
+            <div class="profile-name" style="color:var(--amber)">⚡ Explosivo</div>
+            <div class="profile-count">7 atletas</div>
+            <div class="profile-attrs">
+              <span class="profile-attr">Sprint alto</span>
+              <span class="profile-attr">Vel. máx. alta</span>
+              <span class="profile-attr">Distância média</span>
+            </div>
+          </div>
+          <div class="profile-card" onclick="selectProfile(this,'resistencia')">
+            <div class="profile-name" style="color:var(--green)">🏃 Alta resistência</div>
+            <div class="profile-count">9 atletas</div>
+            <div class="profile-attrs">
+              <span class="profile-attr">Distância alta</span>
+              <span class="profile-attr">Carga alta</span>
+              <span class="profile-attr">Sprint moderado</span>
+            </div>
+          </div>
+          <div class="profile-card" onclick="selectProfile(this,'impacto')">
+            <div class="profile-name" style="color:var(--red)">💥 Alta carga de impacto</div>
+            <div class="profile-count">5 atletas</div>
+            <div class="profile-attrs">
+              <span class="profile-attr">Acelerações altas</span>
+              <span class="profile-attr">Duelos físicos</span>
+              <span class="profile-attr">Sprint curto</span>
+            </div>
+          </div>
+          <div class="profile-card" onclick="selectProfile(this,'baixa')">
+            <div class="profile-name" style="color:var(--muted)">🧘 Baixa intensidade</div>
+            <div class="profile-count">7 atletas</div>
+            <div class="profile-attrs">
+              <span class="profile-attr">Controle de jogo</span>
+              <span class="profile-attr">Vel. moderada</span>
+              <span class="profile-attr">Posicional</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="profile-card-title">Perfil: Explosivo — Radar de indicadores</div>
+              <div class="card-sub">Comparação com média do plantel</div>
+            </div>
+            <span class="tag tag-amber">K-Means · RP01</span>
+          </div>
+          <div class="radar-wrap">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== COMPARAR ===== -->
+      <div id="sec-comparar" style="display:none">
+        <div class="section-divider">Comparação entre atletas (RF04)</div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Seleção de atletas</div>
+              <div class="card-sub">Escolha dois jogadores para comparar</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Atleta A <span style="color:var(--accent2)">●</span></div>
+              <select class="season-select" id="playerA" onchange="updateCompare()">
+                <option>Lucas Ferreira (ATA)</option>
+                <option>Marcos Silva (MEI)</option>
+                <option>Gabriel Costa (DEF)</option>
+                <option>Thiago Alves (GOL)</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Atleta B <span style="color:var(--teal)">●</span></div>
+              <select class="season-select" id="playerB" onchange="updateCompare()">
+                <option>Rodrigo Lima (ATA)</option>
+                <option>Lucas Ferreira (ATA)</option>
+                <option>Marcos Silva (MEI)</option>
+                <option>Gabriel Costa (DEF)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Comparativo de indicadores</div>
+              <div class="card-sub" id="compare-subtitle">Lucas Ferreira vs Rodrigo Lima</div>
+            </div>
+            <span class="tag tag-teal">RF04</span>
+          </div>
+          <div style="margin-bottom:12px;display:flex;gap:16px">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px">
+              <div style="width:12px;height:4px;border-radius:2px;background:var(--accent)"></div>
+              <span id="legend-a" style="color:var(--accent2)">Lucas Ferreira</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px">
+              <div style="width:12px;height:4px;border-radius:2px;background:var(--teal)"></div>
+              <span id="legend-b" style="color:var(--teal)">Rodrigo Lima</span>
+            </div>
+          </div>
+          <div id="compare-rows"></div>
+        </div>
+      </div>
+
+      <!-- ===== ALERTAS ===== -->
+      <div id="sec-alertas" style="display:none">
+        <div class="section-divider">Alertas automáticos de queda de desempenho (RF05 · RF06)</div>
+
+        <div class="alert-list">
+          <div class="alert-item high">
+            <div class="alert-icon" style="color:var(--red)">▼</div>
+            <div style="flex:1">
+              <div class="alert-name">Marcos Silva — Queda crítica de desempenho</div>
+              <div class="alert-desc">Distância de sprint caiu 42% abaixo da média histórica. Velocidade máxima 18% abaixo do padrão individual. Possível fadiga acumulada ou lesão iminente.</div>
+              <div class="alert-time">Detectado: Rodada 22 · 06/04/2026 21:47</div>
+            </div>
+            <span class="tag tag-red">ALTA</span>
+          </div>
+          <div class="alert-item high">
+            <div class="alert-icon" style="color:var(--red)">▼</div>
+            <div style="flex:1">
+              <div class="alert-name">Pedro Henrique — Carga de impacto anômala</div>
+              <div class="alert-desc">Número de acelerações explosivas 3.2 desvios padrão acima do histórico. Risco de sobrecarga muscular nas próximas 48h.</div>
+              <div class="alert-time">Detectado: Rodada 22 · 06/04/2026 21:47</div>
+            </div>
+            <span class="tag tag-red">ALTA</span>
+          </div>
+          <div class="alert-item med">
+            <div class="alert-icon" style="color:var(--amber)">!</div>
+            <div style="flex:1">
+              <div class="alert-name">Diego Souza — Queda progressiva de resistência</div>
+              <div class="alert-desc">Tendência de queda na distância total percorrida ao longo das últimas 4 partidas. Redução de 8% por rodada. Monitoramento recomendado.</div>
+              <div class="alert-time">Detectado: Rodada 21 · 30/03/2026 20:15</div>
+            </div>
+            <span class="tag tag-amber">MÉDIA</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:20px">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Histórico de desempenho — Marcos Silva</div>
+              <div class="card-sub">Detecção de anomalia (Isolation Forest · RP01)</div>
+            </div>
+            <span class="tag tag-red">RF05</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="anomalyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-title">Importar dados de partida</div>
+    <div class="modal-sub">RF01 / RF02 — Adicione um arquivo CSV com os indicadores da rodada</div>
+    <div class="drop-zone" onclick="simulateImport()">
+      <div class="drop-icon">📂</div>
+      <div class="drop-text">Arraste o arquivo aqui ou <strong>clique para selecionar</strong></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">Formatos suportados: .csv · .xlsx · .json</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeImport()">Cancelar</button>
+      <button class="btn-confirm" onclick="simulateImport()">Importar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span style="color:var(--green)">✓</span>
+  <span id="toast-msg">Dados importados com sucesso!</span>
+</div>
+
+<script>
+// ========== DATA ==========
+const players = [
+  { name: 'Lucas Ferreira', pos: 'ATA', dist: 11.2, sprint: 890, vmax: 34.8, acel: 24, carga: 92, status: 'ok',  pct: 92 },
+  { name: 'Marcos Silva',   pos: 'MEI', dist: 8.6,  sprint: 420, vmax: 28.1, acel: 18, carga: 58, status: 'alert', pct: 58 },
+  { name: 'Gabriel Costa',  pos: 'DEF', dist: 10.1, sprint: 670, vmax: 31.2, acel: 21, carga: 80, status: 'ok',  pct: 80 },
+  { name: 'Rodrigo Lima',   pos: 'ATA', dist: 10.8, sprint: 810, vmax: 33.6, acel: 22, carga: 87, status: 'ok',  pct: 87 },
+  { name: 'Pedro Henrique', pos: 'MEI', dist: 10.4, sprint: 950, vmax: 32.4, acel: 36, carga: 84, status: 'alert', pct: 84 },
+  { name: 'Diego Souza',    pos: 'ALA', dist: 9.8,  sprint: 720, vmax: 30.9, acel: 20, carga: 74, status: 'warn', pct: 74 },
+  { name: 'Thiago Alves',   pos: 'GOL', dist: 5.1,  sprint: 180, vmax: 22.3, acel: 8,  carga: 45, status: 'ok',  pct: 45 },
+  { name: 'Carlos Mota',    pos: 'DEF', dist: 9.6,  sprint: 590, vmax: 29.8, acel: 17, carga: 78, status: 'ok',  pct: 78 },
+];
+
+const compareData = {
+  labels: ['Distância total', 'Sprints', 'Vel. máxima', 'Acelerações', 'Carga trabalho', 'Alta intensidade'],
+  playerA: [89, 82, 96, 78, 92, 88],
+  playerB: [85, 91, 88, 85, 84, 79],
+};
+
+// ========== RENDER TABLE ==========
+function renderTable() {
+  const tbody = document.getElementById('player-table-body');
+  tbody.innerHTML = players.map(p => {
+    const pctColor = p.status === 'ok' ? '#22c55e' : p.status === 'warn' ? '#f59e0b' : '#ef4444';
+    const statusClass = p.status === 'ok' ? 'status-ok' : p.status === 'warn' ? 'status-warn' : 'status-alert';
+    return `<tr>
+      <td><div class="player-name">${p.name}</div><div class="player-pos">${p.pos}</div></td>
+      <td><span class="tag ${p.pos==='ATA'?'tag-red':p.pos==='MEI'?'tag-blue':p.pos==='DEF'?'tag-teal':'tag-amber'}">${p.pos}</span></td>
+      <td class="mono">${p.dist.toFixed(1)}</td>
+      <td class="mono">${p.sprint}</td>
+      <td class="mono">${p.vmax.toFixed(1)}</td>
+      <td class="mono">${p.acel}</td>
+      <td class="bar-cell">
+        <div class="mono" style="color:${pctColor}">${p.carga}%</div>
+        <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${p.pct}%;background:${pctColor}"></div></div>
+      </td>
+      <td><span class="status-dot ${statusClass}"></span><span style="font-size:11px;color:var(--muted)">${p.status==='ok'?'Normal':p.status==='warn'?'Atenção':'Alerta'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ========== NAV ==========
+function showSection(id) {
+  ['dashboard','perfis','comparar','alertas'].forEach(s => {
+    document.getElementById('sec-' + s).style.display = s === id ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget && event.currentTarget.classList.add('active');
+  const titles = {
+    dashboard: 'Dashboard — Visão geral',
+    perfis: 'Perfis de jogadores',
+    comparar: 'Comparar atletas',
+    alertas: 'Alertas ativos',
+  };
+  document.getElementById('page-title').textContent = titles[id] || '';
+  if(id === 'perfis') initRadar();
+  if(id === 'alertas') initAnomalyChart();
+  if(id === 'comparar') updateCompare();
+}
+
+// ========== CHARTS ==========
+let radarChart, anomalyChart;
+
+function initWorkloadChart() {
+  const labels = Array.from({length: 22}, (_, i) => `R${i+1}`);
+  const data = [72,74,71,76,78,73,80,82,79,77,83,85,84,80,82,86,85,83,81,79,80,84];
+  new Chart(document.getElementById('workloadChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Carga média',
+        data,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,0.08)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', font: { size: 10 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', font: { size: 10 } }, min: 60, max: 100 }
+      }
+    }
+  });
+}
+
+function initStatusChart() {
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Normal', 'Atenção', 'Alerta'],
+      datasets: [{ data: [23, 2, 3], backgroundColor: ['#22c55e','#f59e0b','#ef4444'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '68%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#6b7280', font: { size: 11 }, boxWidth: 10, padding: 12 }
+        }
+      }
+    }
+  });
+}
+
+function initRadar() {
+  if(radarChart) return;
+  radarChart = new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Sprint', 'Vel. máxima', 'Distância', 'Acelerações', 'Alta intensidade', 'Carga total'],
+      datasets: [
+        {
+          label: 'Perfil Explosivo',
+          data: [95, 92, 72, 78, 90, 80],
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245,158,11,0.1)',
+          borderWidth: 2, pointRadius: 4,
+        },
+        {
+          label: 'Média plantel',
+          data: [72, 74, 78, 70, 75, 77],
+          borderColor: 'rgba(255,255,255,0.2)',
+          backgroundColor: 'rgba(255,255,255,0.03)',
+          borderWidth: 1, pointRadius: 3,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#9ca3af', font: { size: 11 }, boxWidth: 10 } } },
+      scales: {
+        r: {
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          angleLines: { color: 'rgba(255,255,255,0.06)' },
+          pointLabels: { color: '#9ca3af', font: { size: 11 } },
+          ticks: { display: false },
+          min: 0, max: 100
+        }
+      }
+    }
+  });
+}
+
+function initAnomalyChart() {
+  if(anomalyChart) return;
+  const labels = Array.from({length: 22}, (_, i) => `R${i+1}`);
+  const baseline = [85,87,83,88,90,86,89,92,88,87,91,90,89,86,88,90,88,85,82,78,72,58];
+  const threshold = Array(22).fill(78);
+  anomalyChart = new Chart(document.getElementById('anomalyChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Carga de trabalho',
+          data: baseline,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59,130,246,0.07)',
+          borderWidth: 2, tension: 0.3, fill: true, pointRadius: 3,
+        },
+        {
+          label: 'Limiar de alerta',
+          data: threshold,
+          borderColor: '#ef4444',
+          borderDash: [4, 4],
+          backgroundColor: 'transparent',
+          borderWidth: 1.5, pointRadius: 0,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9ca3af', font: { size: 11 }, boxWidth: 10 } },
+        annotation: {}
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', font: { size: 10 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', font: { size: 10 } }, min: 40, max: 100 }
+      }
+    }
+  });
+}
+
+// ========== PROFILES ==========
+function selectProfile(el, name) {
+  document.querySelectorAll('.profile-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const profiles = {
+    explosivo: { label: 'Explosivo', color: '#f59e0b', data: [95,92,72,78,90,80] },
+    resistencia: { label: 'Alta resistência', color: '#22c55e', data: [70,68,95,75,85,94] },
+    impacto: { label: 'Alta carga de impacto', color: '#ef4444', data: [85,75,78,96,80,88] },
+    baixa: { label: 'Baixa intensidade', color: '#6b7280', data: [50,55,65,50,55,60] },
+  };
+  const p = profiles[name];
+  if(radarChart) {
+    radarChart.data.datasets[0].label = 'Perfil ' + p.label;
+    radarChart.data.datasets[0].borderColor = p.color;
+    radarChart.data.datasets[0].backgroundColor = p.color + '18';
+    radarChart.data.datasets[0].data = p.data;
+    radarChart.update();
+  }
+  document.getElementById('profile-card-title').textContent = `Perfil: ${p.label} — Radar de indicadores`;
+}
+
+// ========== COMPARE ==========
+function updateCompare() {
+  const a = document.getElementById('playerA').value.split(' ')[0] + ' ' + document.getElementById('playerA').value.split(' ')[1];
+  const b = document.getElementById('playerB').value.split(' ')[0] + ' ' + document.getElementById('playerB').value.split(' ')[1];
+  document.getElementById('compare-subtitle').textContent = `${a} vs ${b}`;
+  document.getElementById('legend-a').textContent = a;
+  document.getElementById('legend-b').textContent = b;
+
+  const rows = document.getElementById('compare-rows');
+  rows.innerHTML = compareData.labels.map((label, i) => {
+    const va = compareData.playerA[i];
+    const vb = compareData.playerB[i];
+    const total = 160;
+    const wa = Math.round(va / (va + vb) * total * 0.9);
+    const wb = Math.round(vb / (va + vb) * total * 0.9);
+    return `<div class="compare-row">
+      <div class="compare-label">${label}</div>
+      <div class="compare-bars">
+        <div class="cbar-a" style="width:${wa}px"></div>
+        <div class="compare-sep"></div>
+        <div class="cbar-b" style="width:${wb}px"></div>
+      </div>
+      <div class="compare-vals">
+        <span class="cv a">${va}</span>
+        <span class="cv b">${vb}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ========== IMPORT ==========
+function openImport() {
+  document.getElementById('importModal').classList.add('open');
+}
+
+function closeImport() {
+  document.getElementById('importModal').classList.remove('open');
+}
+
+function simulateImport() {
+  closeImport();
+  showToast('Dados da rodada importados com sucesso! (RNF04)');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ========== INIT ==========
+renderTable();
+initWorkloadChart();
+initStatusChart();
+updateCompare();
+</script>
+</body>
+</html>

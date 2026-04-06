@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.env
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+test.db
+*.db
+
+# Node
+node_modules/
+dist/
+.env.local
+.env.production
+
+# Docker
+.docker/
+
+# ML models
+*.pkl
+*.joblib
+.model_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Certs
+infra/nginx/certs/*.pem
+infra/nginx/certs/*.key
+
+# Logs
+*.log
+logs/

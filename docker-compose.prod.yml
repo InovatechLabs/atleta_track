@@ -1,0 +1,38 @@
+version: "3.9"
+
+# Sobrepõe docker-compose.yml para produção
+# Uso: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  db:
+    ports: []   # Não expor porta do banco em produção
+
+  redis:
+    ports: []
+
+  backend:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    ports: []   # Exposto apenas via nginx
+    environment:
+      DEBUG: "false"
+
+  worker:
+    command: celery -A app.core.celery_app worker --loglevel=warning --concurrency=4
+
+  frontend:
+    ports: []
+
+  # Nginx reverso em produção (porta 80 e 443)
+  nginx:
+    image: nginx:alpine
+    container_name: atletatrack-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - frontend
+      - backend
