@@ -256,18 +256,22 @@ export async function getDashboard(filters: QueryFilters) {
     riskScore: (a.avgWorkload * 0.6) + (a.avgDecelerations * 0.4) 
   }));
 
-  const fatigueAnalysis = [...firstHalfMap.keys()].map(athleteId => {
-    const avgFirst = avg(firstHalfMap.get(athleteId) || []);
-    const avgSecond = avg(secondHalfMap.get(athleteId) || []);
-    const dropPercent = avgFirst > 0 ? ((avgFirst - avgSecond) / avgFirst) * 100 : 0;
-    
-    return {
-      athleteId,
-      firstHalfHIR: avgFirst,
-      secondHalfHIR: avgSecond,
-      dropPercent: dropPercent > 0 ? dropPercent : 0
-    };
-  }).sort((a, b) => b.dropPercent - a.dropPercent).slice(0, 5); // Pega os 5 que mais cansam
+  // Card "Critical Alert: Drop in Performance" — SOMENTE Isolation Forest.
+  // Os alertas ativos sao recriados pelo PerformanceDropService (modelo) a cada
+  // import/recalculo, entao representam exclusivamente a saida do Isolation Forest.
+  const modelDropAlerts = await prisma.alert.findMany({
+    where: { active: true },
+    orderBy: { dropPercent: 'desc' },
+    take: 5,
+  });
+  const fatigueAnalysis = modelDropAlerts.map(a => ({
+    athleteId: a.athleteId,
+    metric: a.metric,
+    baseline: a.historical,   // media historica do atleta (base do modelo)
+    current: a.recent,        // valor da sessao atual avaliada
+    dropPercent: a.dropPercent,
+    severity: a.severity,
+  }));
 
 
  const radarMap = {

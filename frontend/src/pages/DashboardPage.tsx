@@ -567,10 +567,10 @@ export function DashboardPage() {
                     </motion.div>
                     <div>
                       <h2 className="text-lg font-bold text-white">
-                        Critical Alert: Drop in Income
+                        Critical Alert: Drop in Performance
                       </h2>
                       <p className="text-xs text-slate-500">
-                        Players with the highest drop in HIR (High Intensity Running) in the 2nd half
+                        Maiores quedas detectadas pelo modelo (Isolation Forest) — sessão atual vs histórico do atleta
                       </p>
                     </div>
                   </div>
@@ -592,7 +592,7 @@ export function DashboardPage() {
                           }
                         `}
                       >
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-bold text-white">
                             {player.athleteId}
                           </span>
@@ -606,17 +606,20 @@ export function DashboardPage() {
                             -{player.dropPercent.toFixed(1)}%
                           </span>
                         </div>
+                        <p className="text-[10px] uppercase tracking-wide text-slate-500 mb-2">
+                          {player.metric}
+                        </p>
                         <div className="space-y-1.5">
                           <div className="flex justify-between text-xs">
-                            <span className="text-slate-500">1º Tempo HIR</span>
+                            <span className="text-slate-500">Histórico</span>
                             <span className="text-emerald-400 font-medium">
-                              {player.firstHalfHIR.toFixed(1)}
+                              {player.baseline.toFixed(1)}
                             </span>
                           </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-slate-500">2º Tempo HIR</span>
+                            <span className="text-slate-500">Atual</span>
                             <span className="text-red-400 font-medium">
-                              {player.secondHalfHIR.toFixed(1)}
+                              {player.current.toFixed(1)}
                             </span>
                           </div>
                           {/* Visual bar showing drop */}

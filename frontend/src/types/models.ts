@@ -39,9 +39,11 @@ export type Dashboard = {
 // Extended types for new API nodes (backward compatible)
 type FatigueItem = {
   athleteId: string;
+  metric: string;
   dropPercent: number;
-  firstHalfHIR: number;
-  secondHalfHIR: number;
+  baseline: number;   // media historica (Isolation Forest)
+  current: number;    // sessao atual avaliada
+  severity?: string;
 };
 
 type RadarItem = {
