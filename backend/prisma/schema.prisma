@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Athlete {
+  id           String        @id
+  position     String?
+  groups       String?
+  profile      AthleteProfile @default(balanced)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  performances Performance[]
+  alerts       Alert[]
+  injuries     InjuryHistory[]
+  riskScores   AthleteRiskScore[]
+  performanceAlerts PerformanceAlert[]
+
+  @@index([position])
+  @@index([groups])
+}
+
+model Performance {
+  id                              Int      @id @default(autoincrement())
+  athleteId                       String
+  startDate                       DateTime
+  startTime                       String?
+  startTimeSeconds                Float?
+  endTimeSeconds                  Float?
+  weekStartDate                   DateTime?
+  monthStartDate                  DateTime?
+  segmentName                     String?
+  durationMins                    Float?
+  sessionLoad                     Float?
+  workload                        Float?
+  workloadVolume                  Float?
+  workloadIntensity               Float?
+  distanceM                       Float?
+  metresPerMinute                 Float?
+  highIntensityRunningM           Float?
+  highIntensityEvents             Float?
+  sprintDistanceM                 Float?
+  rawTopSpeedKph                  Float?
+  noOfSprints                     Float?
+  topSpeedKph                     Float?
+  avgSpeedKph                     Float?
+  accelerations                   Float?
+  decelerations                   Float?
+  percentageMaxSpeed              Float?
+  percentageRawMaxSpeedKph        Float?
+  maxSpeed90Events                Float?
+  maxSpeed90DistanceM             Float?
+  maxSpeed90DurationSecs          Float?
+  rawMaxSpeed90Events             Float?
+  rawMaxSpeed90DistanceM          Float?
+  rawMaxSpeed90DurationSecs       Float?
+  createdAt                       DateTime @default(now())
+
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@index([athleteId])
+  @@index([startDate])
+  @@index([segmentName])
+}
+
+model InjuryHistory {
+  id         Int      @id @default(autoincrement())
+  athleteId  String
+  injuryDate DateTime
+  type       String
+  severity   String
+  daysOut    Int      @default(0)
+  bodyRegion String
+  notes      String?
+  status     String   @default("Recovered")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@index([athleteId])
+  @@index([injuryDate])
+  @@index([bodyRegion])
+}
+
+model AthleteRiskScore {
+  id             Int      @id @default(autoincrement())
+  athleteId      String
+  riskScore      Int
+  riskLevel      String
+  mainFactors    String[]
+  explanation    String
+  recommendation String
+  createdAt      DateTime @default(now())
+
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@index([athleteId])
+  @@index([riskLevel])
+  @@index([createdAt])
+}
+
+model PerformanceAlert {
+  id            Int      @id @default(autoincrement())
+  athleteId     String
+  metric        String
+  severity      String
+  score         Int
+  currentValue  Float
+  baselineValue Float
+  dropPercent   Float
+  explanation   String
+  recommendation String
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@index([athleteId])
+  @@index([severity])
+  @@index([active])
+}
+
+model ImportLog {
+  id              Int      @id @default(autoincrement())
+  fileName        String
+  fileType        String
+  status          String
+  importedRows    Int      @default(0)
+  ignoredRows     Int      @default(0)
+  duplicateRows   Int      @default(0)
+  missingColumns  String[]
+  errors          String[]
+  createdAt       DateTime @default(now())
+}
+
+model WorkloadMetric {
+  id            Int      @id @default(autoincrement())
+  athleteId     String
+  date          DateTime
+  acuteLoad     Float
+  chronicLoad   Float
+  acwr          Float
+  monotony      Float
+  strain        Float
+  readinessScore Float?
+  fatigueScore  Float?
+  createdAt     DateTime @default(now())
+
+  @@index([athleteId])
+  @@index([date])
+}
+
+model AthleteBaseline {
+  id          Int      @id @default(autoincrement())
+  athleteId   String
+  metric      String
+  value       Float
+  windowDays  Int      @default(28)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([athleteId, metric])
+  @@index([athleteId])
+}
+
+model TeamBenchmark {
+  id        Int      @id @default(autoincrement())
+  metric    String
+  value     Float
+  createdAt DateTime @default(now())
+
+  @@index([metric])
+}
+
+model PositionBenchmark {
+  id        Int      @id @default(autoincrement())
+  position  String
+  metric    String
+  value     Float
+  createdAt DateTime @default(now())
+
+  @@index([position])
+  @@index([metric])
+}
+
+model Alert {
+  id          Int           @id @default(autoincrement())
+  athleteId   String
+  metric      String
+  severity    AlertSeverity
+  dropPercent Float
+  historical  Float
+  recent      Float
+  message     String
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@index([athleteId])
+  @@index([active])
+  @@index([severity])
+}
+
+enum AthleteProfile {
+  explosive
+  endurance
+  lowIntensity
+  highImpactLoad
+  balanced
+}
+
+enum AlertSeverity {
+  low
+  medium
+  high
+}

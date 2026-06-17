@@ -1,0 +1,13 @@
+Athlete ID,Athlete Position,Athlete Groups,Start Date,Start Time,Start Time (s),End Time (s),Week Start Date,Month Start Date,Segment Name,Duration (mins),Session Load,Workload,Workload Volume,Workload Intensity,Distance (m),Metres per Minute (m),High Intensity Running (m),No. of High Intensity Events,Sprint Distance (m),Raw Top Speed (kph),No. of Sprints,Top Speed (kph),Avg Speed (kph),Accelerations,Decelerations,Percentage of Max Speed,Percentage of Raw Max Speed KPH,90% of Max Speed Events,90% of Max Speed Distance (m),90% of Max Speed Duration (secs),90% of Raw Max Speed Events,90% of Raw Max Speed Distance (m),90% of Raw Max Speed Duration (secs)
+FV-001,Forward,Professional A,2026-01-05,08:00,0,5400,2026-01-05,2026-01-01,Training,90,420,610,7.1,88,9250,102.8,1820,36,610,32.4,18,31.8,10.7,76,68,91,89,7,340,44,5,260,31
+FV-002,Midfielder,Professional A,2026-01-05,08:00,0,5400,2026-01-05,2026-01-01,Training,90,480,690,7.6,93,10850,120.6,2140,42,520,31.1,15,30.6,12.1,94,86,88,87,5,290,38,4,210,27
+FV-003,Defender,Professional A,2026-01-05,08:00,0,5400,2026-01-05,2026-01-01,Training,90,350,520,5.8,74,8120,90.2,980,21,260,29.5,8,28.9,9.0,54,61,84,83,3,140,19,2,110,14
+FV-004,Goalkeeper,Professional A,2026-01-05,08:00,0,5400,2026-01-05,2026-01-01,Training,90,180,260,2.9,42,3680,40.9,220,7,70,24.2,3,23.7,4.1,28,31,76,75,1,30,6,1,25,5
+FV-001,Forward,Professional A,2026-01-12,08:30,0,5400,2026-01-12,2026-01-01,Match,90,510,760,8.4,96,10420,115.8,2260,47,780,33.1,23,32.5,11.6,88,74,93,91,9,430,52,7,350,39
+FV-002,Midfielder,Professional A,2026-01-12,08:30,0,5400,2026-01-12,2026-01-01,Match,90,560,820,9.1,101,11740,130.4,2380,51,620,31.8,18,31.0,13.0,102,91,89,88,7,360,45,5,280,34
+FV-003,Defender,Professional A,2026-01-12,08:30,0,5400,2026-01-12,2026-01-01,Match,90,430,640,7.1,82,9340,103.8,1260,28,340,30.2,10,29.7,10.4,69,73,86,85,4,190,24,3,150,18
+FV-004,Goalkeeper,Professional A,2026-01-12,08:30,0,5400,2026-01-12,2026-01-01,Match,90,220,315,3.5,46,4210,46.8,300,9,90,25.6,4,25.1,4.7,33,35,78,77,1,40,7,1,35,6
+FV-001,Forward,Professional A,2026-01-19,09:00,0,5400,2026-01-19,2026-01-01,Training,90,360,520,5.8,70,7700,85.6,1240,23,390,30.5,10,29.8,8.6,50,46,85,84,3,160,22,2,130,17
+FV-002,Midfielder,Professional A,2026-01-19,09:00,0,5400,2026-01-19,2026-01-01,Training,90,455,670,7.4,91,10490,116.6,2050,39,500,30.8,14,30.2,11.7,85,78,86,86,5,270,36,4,210,28
+FV-003,Defender,Professional A,2026-01-19,09:00,0,5400,2026-01-19,2026-01-01,Training,90,300,450,5.0,67,7400,82.2,840,16,210,28.1,6,27.6,8.2,44,52,80,79,2,90,13,1,70,10
+FV-004,Goalkeeper,Professional A,2026-01-19,09:00,0,5400,2026-01-19,2026-01-01,Training,90,160,230,2.6,39,3350,37.2,180,5,50,23.5,2,22.9,3.7,22,27,72,71,0,0,0,0,0,0

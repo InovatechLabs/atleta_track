@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+body { @apply bg-slate-950 text-slate-100; }
+.card { @apply rounded-2xl border border-white/10 bg-slate-900/80 p-4 shadow-xl shadow-black/10; }
+.input { @apply rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-blue-400; }
+.btn { @apply rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50; }
